@@ -6,7 +6,9 @@ from openai import AsyncOpenAI
 from pydantic import BaseModel
 
 from summariser.core.config import get_settings
-from summariser.services.summariser import summarise_ticket
+from summariser.services.summariser import chat_with_llm, summarise_ticket
+
+history: list[dict[str, str]] = []
 
 
 @asynccontextmanager
@@ -34,5 +36,13 @@ async def root():
 async def summarise(payload: SummariserCreate, client: Annotated[AsyncOpenAI, Depends(get_openai_client)]):
     summary = await summarise_ticket(payload.input, client=client)
     return {"summary":summary}
+
+@app.post('/chat')
+async def chat(payload: SummariserCreate, client: Annotated[AsyncOpenAI, Depends(get_openai_client)]):
+    response = await chat_with_llm(client, payload.input)
+    return {"response": response}
+
+
+
 
 
